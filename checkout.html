@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade to Pro - Pricing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #1a1a2e; margin-bottom: 10px; }
+        .price { font-size: 3rem; color: #667eea; font-weight: 700; }
+        .price span { font-size: 1rem; color: #666; }
+        .features { text-align: left; margin: 30px 0; }
+        .feature { padding: 10px 0; border-bottom: 1px solid #eee; }
+        .feature:last-child { border: none; }
+        .feature::before { content: "✓"; color: #22c55e; margin-right: 10px; }
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .dry-run-notice {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .success-message {
+            display: none;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upgrade to Pro</h1>
+        <p style="color: #666; margin-bottom: 20px;">Unlock all features</p>
+        
+        <div class="price">$9<span>/month</span></div>
+        
+        <div class="features">
+            <div class="feature">Unlimited projects</div>
+            <div class="feature">Priority support</div>
+            <div class="feature">Advanced analytics</div>
+            <div class="feature">Custom domains</div>
+            <div class="feature">API access</div>
+        </div>
+        
+        <button class="btn" id="checkoutBtn" onclick="handleCheckout()">
+            Subscribe Now
+        </button>
+        
+        
+        
+        <div class="success-message" id="successMessage">
+            ✅ Payment successful! Welcome to Pro!
+        </div>
+    </div>
+    
+    <script>
+        const isDryRun = false;
+        const STRIPE_PUBLIC_KEY = 'pk_test_xxx';
+        
+        async function handleCheckout() {
+            const btn = document.getElementById('checkoutBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            
+            if (isDryRun) {
+                // Simulate payment in DRY RUN mode
+                console.log('🔒 DRY RUN: Stripe payment simulated');
+                
+                await new Promise(r => setTimeout(r, 1500));
+                
+                document.getElementById('successMessage').style.display = 'block';
+                btn.textContent = 'Subscribed!';
+                
+                // Log to localStorage (simulated)
+                const subscription = {
+                    status: 'active',
+                    plan: 'pro',
+                    amount: 9,
+                    currency: 'usd',
+                    timestamp: new Date().toISOString(),
+                    dryRun: true
+                };
+                localStorage.setItem('subscription', JSON.stringify(subscription));
+                
+                console.log('✅ Subscription simulated:', subscription);
+            } else {
+                // Real Stripe checkout
+                try {
+                    const response = await fetch('/create-checkout-session', {
+                        method: 'POST'
+                    });
+                    const { url } = await response.json();
+                    window.location.href = url;
+                } catch (error) {
+                    console.error('Checkout failed:', error);
+                    btn.disabled = false;
+                    btn.textContent = 'Error - Try Again';
+                }
+            }
+        }
+        
+        // Check existing subscription
+        const existing = localStorage.getItem('subscription');
+        if (existing) {
+            const sub = JSON.parse(existing);
+            if (sub.status === 'active') {
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('successMessage').textContent = '✅ You are already a Pro member!';
+                document.getElementById('checkoutBtn').textContent = 'Subscribed';
+            }
+        }
+    </script>
+</body>
+</html>
